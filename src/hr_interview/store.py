@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS interviews(
   round INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'live',
   started_at TEXT NOT NULL,
-  ended_at TEXT
+  ended_at TEXT,
+  report_json TEXT
 );
 CREATE TABLE IF NOT EXISTS messages(
   id INTEGER PRIMARY KEY AUTOINCREMENT,

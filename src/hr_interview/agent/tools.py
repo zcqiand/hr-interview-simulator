@@ -5,6 +5,8 @@ evaluation.eval_from_payload，工具层不做第二套校验。
 """
 from __future__ import annotations
 
+import json
+
 from hr_interview.agent.prompts import next_phase
 from hr_interview.evaluation import build_report, eval_from_payload
 from hr_interview.llm import LLMClient
@@ -103,7 +105,10 @@ def execute_tool(
         if iv is None or iv["status"] != "live":
             return "面试已结束。", None
         report = build_report(llm, candidate_name, store.list_answer_evals(interview_id))
-        store.update_interview(interview_id, {"status": "ended", "ended_at": now_iso()})
+        store.update_interview(interview_id, {
+            "status": "ended", "ended_at": now_iso(),
+            "report_json": json.dumps(report, ensure_ascii=False),
+        })
         return "面试已结束，总评报告已生成。", {"type": "done", "status": "ended", "report": report}
 
     return f"未支持的工具：{name}", None

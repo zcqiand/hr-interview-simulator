@@ -150,7 +150,10 @@ class Interviewer:
         report = build_report(
             self._llm, candidate_name, self._store.list_answer_evals(interview_id)
         )
-        self._store.update_interview(interview_id, {"status": "ended", "ended_at": now_iso()})
+        self._store.update_interview(interview_id, {
+            "status": "ended", "ended_at": now_iso(),
+            "report_json": json.dumps(report, ensure_ascii=False),
+        })
         yield {"type": "done", "status": "ended", "report": report}
 
     def _load_focus(self, iv: dict) -> dict:
