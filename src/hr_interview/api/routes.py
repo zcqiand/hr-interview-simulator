@@ -8,8 +8,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from hr_interview.agent.interviewer import Interviewer
+from hr_interview.evaluation import build_report
 from hr_interview.matching import match_jd
 from hr_interview.resume import extract_pdf_text, parse_jd, parse_resume
+from hr_interview.store import now_iso
 
 router = APIRouter(prefix="/api")
 
@@ -209,6 +211,24 @@ def get_interview_detail(iid: str, request: Request):
 
 
 # ---- M03.F02.I02 报告 ----
+
+
+@router.post("/interviews/{iid}/finish")
+def finish_interview(iid: str, request: Request):
+    """候选人主动收尾（前端结束按钮）：立即生成总评报告并结束。"""
+    llm, store = request.app.state.llm, request.app.state.store
+    iv = store.get_interview(iid)
+    if iv is None:
+        raise HTTPException(status_code=404, detail="面试不存在")
+    if iv["status"] != "live":
+        raise HTTPException(status_code=409, detail="面试已结束")
+    cand = store.get_candidate(iv["candidate_id"])
+    report = build_report(llm, cand["name"], store.list_answer_evals(iid))
+    store.update_interview(iid, {
+        "status": "ended", "ended_at": now_iso(),
+        "report_json": json.dumps(report, ensure_ascii=False),
+    })
+    return report
 
 
 @router.get("/interviews/{iid}/report")

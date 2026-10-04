@@ -159,6 +159,20 @@ def test_reply_after_end_streams_error_event(client):
     assert "结束" in events[0]["message"]
 
 
+def test_manual_finish_then_report(client):
+    jd = client.post("/api/jds", json={"title": "T", "jd_text": "Python"}).json()
+    cand = client.post("/api/resumes/text", json={"name": "张三", "text": "Python 工程师", "jd_id": jd["id"]}).json()
+    iid = client.post("/api/interviews", json={"candidate_id": cand["id"], "jd_id": jd["id"]}).json()["id"]
+    client.post(f"/api/interviews/{iid}/start")
+    r = client.post(f"/api/interviews/{iid}/finish")  # 候选人主动结束（M05 结束按钮）
+    assert r.status_code == 200
+    report = r.json()
+    assert report["candidate_name"] == "张三"
+    assert client.get(f"/api/interviews/{iid}/report").json()["summary"] == report["summary"]
+    # 重复收尾 → 409
+    assert client.post(f"/api/interviews/{iid}/finish").status_code == 409
+
+
 def test_report_before_end_409(client):
     jd = client.post("/api/jds", json={"title": "T", "jd_text": "Python"}).json()
     cand = client.post("/api/resumes/text", json={"name": "张三", "text": "Python 工程师", "jd_id": jd["id"]}).json()
