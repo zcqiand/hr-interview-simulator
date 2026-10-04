@@ -57,6 +57,15 @@ def test_mock_routes_report_writer():
     assert isinstance(data["summary"], str) and isinstance(data["suggestions"], list)
 
 
+def test_mock_routes_interviewer_opening():
+    llm = MockLLM()
+    msg = llm.chat(messages=[
+        {"role": "system", "content": "你是一位资深技术面试官…当前阶段：opening（开场）。"},
+        {"role": "user", "content": "（面试开始，请按当前阶段规则出第一题。）"},
+    ])
+    assert "自我介绍" in msg["content"]  # 不能落进兜底「（演示）收到」
+
+
 # ---- chat_stream：面试行为机（先评价后出题，合理轮数收尾）----
 
 

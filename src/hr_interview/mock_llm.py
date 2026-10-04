@@ -83,6 +83,8 @@ class MockLLM:
             except json.JSONDecodeError:
                 must, nice = [], []
             payload = {"items": _heuristic_items(_section(user, "简历原文"), must, nice)}
+        elif "面试官" in system and "面试开始" in user:
+            return assistant_msg("请先做一个简短的自我介绍，重点讲你最熟的项目与技能。")
         else:
             payload = {"note": "（演示）收到"}
         return assistant_msg(json.dumps(payload, ensure_ascii=False))
