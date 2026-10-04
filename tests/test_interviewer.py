@@ -98,6 +98,24 @@ def test_reply_tool_eval_evidence_discarded(tmp_path):
     assert ev["evidence_verified"] is False
 
 
+def test_reply_injects_recent_evals_into_prompt(tmp_path):
+    """追问闭环的驱动机制：上一轮评价必须进系统提示词（M02.F01.I03）。"""
+    s, iid = _setup(tmp_path)
+    s.insert_answer_eval(
+        iid, 1, "tech", "讲一个性能优化案例", "我用了缓存。",
+        json.dumps({"tech_depth": 2, "clarity": 3, "evidence": 2, "fit": 3}),
+        "我用了缓存", "深度不足，需追问证据",
+    )
+    llm = FakeLLM(turns=[assistant_msg(content="你说的缓存，命中率是多少？")])
+    iv = Interviewer(llm, s)
+    s.update_interview(iid, {"question_count": 1})
+    list(iv.reply(iid, "我用了缓存。"))
+    sent = llm.calls[0]["messages"][0]["content"]
+    assert "近轮评价" in sent
+    assert "深度不足，需追问证据" in sent  # 评价点评驱动追问
+    assert "tech_depth" in sent
+
+
 # ---- advance_stage：阶段推进（M02.F01.I02）----
 
 
