@@ -1,0 +1,30 @@
+{
+  "project_id": "hr-interview-simulator",
+  "locked_at": "2026-10-04",
+  "python": "3.10+（开发机 3.11.7）",
+  "dependencies": {
+    "fastapi": "0.141.1",
+    "uvicorn": "0.54.0",
+    "openai": "2.54.0",
+    "pydantic": "2.12.5",
+    "pypdf": "6.19.0",
+    "pytest": "9.1.1",
+    "httpx": "0.28.1"
+  },
+  "llm_provider": {
+    "type": "openai-compatible",
+    "base_url": "https://api.minimaxi.com/v1",
+    "model": "MiniMax-M3",
+    "note": "直调 OpenAI 兼容 chat.completions（含 function calling 与流式），不引 LangGraph/CrewAI；key 只放 .env 不入库"
+  },
+  "frontend": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "vite": "5.4.21",
+    "typescript": "5.6.3",
+    "@vitejs/plugin-react": "4.7.0",
+    "@types/react": "18.3.31",
+    "registry": "registry.npmmirror.com"
+  },
+  "notes": "升级任何依赖前先改这里与 pyproject/package-lock 同 commit；tests 必须在无 Key 无网下全绿（FakeLLM）。前端 npm 依赖以 package-lock.json 实际解析版本为准，与本表一致。pypdf 实际安装版本在首次 pip install 后回填核对"
+}

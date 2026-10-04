@@ -1,0 +1,31 @@
+[project]
+name = "hr-interview-simulator"
+version = "0.1.0"
+description = "AI 面试官——会追问、记得住的 HR 面试模拟 Agent（FastAPI + OpenAI 兼容直调）"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.141,<0.142",
+    "uvicorn>=0.54,<0.55",
+    "openai>=2.54,<2.55",
+    "pydantic>=2.12,<2.13",
+    "pypdf>=6.1,<7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.1,<10",
+    "httpx>=0.28,<0.29",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

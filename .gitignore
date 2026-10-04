@@ -1,0 +1,23 @@
+# 密钥与本地配置——绝不入库
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# 本地数据
+*.db
+*.sqlite3
+data/
+
+# 前端
+node_modules/
+dist/
+.vite/
+
+# 杂项
+*.log
+.DS_Store
