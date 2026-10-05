@@ -180,3 +180,14 @@ def test_report_before_end_409(client):
     client.post(f"/api/interviews/{iid}/start")
     r = client.get(f"/api/interviews/{iid}/report")
     assert r.status_code == 409
+
+
+# ---- 健康探针（部署链探活用，kids 仓同款契约）----
+
+
+def test_health_endpoint(client):
+    r = client.get("/api/health")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["ok"] is True
+    assert body["mode"] == "mock"

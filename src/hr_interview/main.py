@@ -31,4 +31,9 @@ def create_app(
     app.state.llm = llm if llm is not None else build_llm(settings)
     app.state.store = store if store is not None else Store(settings.db_path)
     app.include_router(router)
+
+    @app.get("/api/health")
+    def health() -> dict:
+        return {"ok": True, "mode": settings.llm_mode}
+
     return app
