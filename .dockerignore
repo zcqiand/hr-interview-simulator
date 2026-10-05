@@ -1,0 +1,12 @@
+# 构建上下文瘦身 + 密钥/数据绝不进 context（密钥只走 env-file / GitHub Secrets）
+.env
+.env.*
+data/
+frontend/
+tests/
+docs/
+.github/
+deploy/
+.git/
+**/__pycache__/
+*.egg-info/

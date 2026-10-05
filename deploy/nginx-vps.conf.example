@@ -1,0 +1,61 @@
+# VPS nginx vhost — hr-interview-simulator（agent 家族：web 5302 / api 5402）
+#
+# 参考模板，不在 nginx include 路径里（.example 后缀 nginx 不当真）。
+# deploy 脚本每次部署从 master 重拉并渲染占位符（<domain> / cert 路径 → 实际值；
+# cert 归一化为 xiangru-uk 泛域证书 *.xiangru.uk）。
+#
+# 形态：一域双 upstream —— / 静态 web 容器（5302），/api/ api 容器（5402）。
+# SSE 要点（本仓对话流，kids 对话/跟读流同款）：proxy_buffering off + 长读超时 +
+# Connection 置空——否则 nginx 缓冲把 SSE 事件攒成一坨，LLM 长响应被默认 60s 读超时掐断。
+
+server {
+    listen 80;
+    server_name <domain>;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name <domain>;
+
+    # cert / key 在 VPS 本地，**不入仓**（deploy 脚本 sed 归一化占位符）
+    ssl_certificate     /etc/nginx/ssl/<domain>.crt;
+    ssl_certificate_key /etc/nginx/ssl/<domain>.key;
+
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # 浏览器一年 HTTPS-only
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    # api 容器（uvicorn host=container=5402；Dockerfile CMD 钉死）：SSE 流式 + LLM 长响应
+    location /api/ {
+        proxy_pass http://127.0.0.1:5402;
+
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 300s;
+        chunked_transfer_encoding on;
+    }
+
+    # web 容器（nginx 静态，容器 :80 → host 5302）
+    location / {
+        proxy_pass http://127.0.0.1:5302;
+
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

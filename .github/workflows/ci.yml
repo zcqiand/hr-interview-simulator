@@ -1,0 +1,101 @@
+name: ci
+
+# hr-interview-simulator（ch10 HR 面试模拟器：FastAPI + OpenAI 兼容直调 + React18/Vite 前端）
+# agent 家族部署链（docs/families/agent.md）：tag push → 双镜像（-api / -web）
+# build & push → VPS deploy/hr-interview-simulator.sh 拉镜像 + 渲染 vhost + 起容器
+# + /api/health 探活。测试门 = pytest 全量（无 Key 无网）+ 前端 tsc+vite 构建。
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: 后端测试（pytest 全量，无 Key 无网）
+        run: |
+          pip install -e ".[dev]"
+          python -m pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: 前端构建（tsc + vite，类型错误即红；npm 走 npmmirror）
+        run: |
+          npm ci --registry=https://registry.npmmirror.com --no-audit --no-fund
+          npm run build
+        working-directory: frontend
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/')
+    concurrency:
+      group: deploy-${{ github.event.repository.name }}-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}-api:latest
+            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.ref_name }}
+
+      - name: Build and push Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}-web:latest
+            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.ref_name }}
+
+      - name: Pull images and restart containers on VPS
+        uses: appleboy/ssh-action@v1
+        # appleboy/ssh-action@v1 的 ${{ secrets.* }} 不会自动进 SSH 远端 shell;
+        # step env 注入 Actions env, with.envs 列出要转发的名字（逗号分隔）。
+        # LLM_API_KEY 仅首启 bootstrap 需要（env-file 已有真 key 时后续 deploy 可缺省）。
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          NGINX_DOMAIN: ${{ vars.NGINX_DOMAIN }}
+          NGINX_CERT_BASENAME: ${{ vars.NGINX_CERT_BASENAME }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: LLM_API_KEY,NGINX_DOMAIN,NGINX_CERT_BASENAME
+          script: |
+            # 自举: 首次部署无 /home/deploy/<repo>/ 时自动建 + 拉 deploy 脚本
+            set -e
+            REPO="${{ github.event.repository.name }}"
+            DEPLOY_DIR="/home/deploy/$REPO"
+            mkdir -p "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+            # 总是重拉最新 deploy 脚本（脚本 bug fix 立即生效）；nginx 模板由脚本自拉
+            curl -fsSL "https://raw.githubusercontent.com/zcqiand/${REPO}/refs/heads/master/deploy/${REPO}.sh" -o "$REPO.sh"
+            chmod +x "$REPO.sh"
+            echo "→ env on remote: LLM_API_KEY_set=$([ -n \"${LLM_API_KEY:-}\" ] && echo yes || echo no)"
+            if [ ! -f "$REPO.env" ] && [ -z "${LLM_API_KEY:-}" ]; then
+              echo "ERROR: $REPO.env missing AND LLM_API_KEY secret not forwarded, deploy script will fail-fast" >&2
+            fi
+            sh "$REPO.sh" "${{ secrets.DOCKER_USERNAME }}" "${{ secrets.DOCKER_PASSWORD }}" "${{ github.ref_name }}"
