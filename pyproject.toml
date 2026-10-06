@@ -34,4 +34,5 @@ testpaths = ["tests"]
 addopts = "-q"
 filterwarnings = [
     "ignore:Cannot set an attribute on 'crewai.rag':ImportWarning",
+    "ignore:The default value of `allowed_objects` will change:langchain_core._api.deprecation.LangChainPendingDeprecationWarning",
 ]
