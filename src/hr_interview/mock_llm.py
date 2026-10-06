@@ -83,7 +83,7 @@ class MockLLM:
             # v2 crew 路径：user 含 crewai 模板样板——切回纯简历文本域取词（演示语义同 v1）
             body = _crew_source_text(user, "【简历原文】")
             skills = sorted(set(re.findall(r"[A-Za-z]{2,}", body)))[:5]
-            first_line = user.strip().splitlines()[0][:60] if user.strip() else ""
+            first_line = body.strip().splitlines()[0][:60] if body.strip() else ""
             payload = {
                 "skills": skills or ["（未识别）"],
                 "experiences": [first_line] if first_line else [],
