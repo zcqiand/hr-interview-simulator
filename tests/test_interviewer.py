@@ -201,3 +201,13 @@ def test_phase_machine_single_direction():
     iv = Interviewer(FakeLLM(), Store(":memory:"))
     assert iv.next_phase("opening") == "tech"
     assert iv.next_phase("closing") is None  # 终点
+
+
+def test_reply_worker_crash_yields_error_and_terminates(tmp_path):
+    """Review Focus 5：图内异常必须兜底成 error 事件且生成器终止，不挂死。"""
+    s, iid = _setup(tmp_path)
+    llm = FakeLLM(turns=[])  # 空脚本 → ask 内 FakeLLM 抛 AssertionError
+    iv = Interviewer(llm, s)
+    s.update_interview(iid, {"question_count": 1})
+    events = list(iv.reply(iid, "我的回答"))  # 若挂死此行超时
+    assert events[-1]["type"] == "error"
