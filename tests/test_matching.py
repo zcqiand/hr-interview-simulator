@@ -132,3 +132,15 @@ def test_match_role_marker_reaches_llm():
     llm = _llm_with(_GOOD)
     match_jd(llm, _PROFILE, _RESUME, _REQS)
     assert "岗位匹配评估器" in llm.calls[0]["messages"][0]["content"]
+
+
+def test_match_mock_llm_demo_produces_scored_items():
+    """端到端钉：MockLLM 走 crew 路径的打分产物等价 v1（终审 Important #2）。"""
+    from hr_interview.mock_llm import MockLLM
+
+    llm = MockLLM()
+    r = match_jd(llm, _PROFILE, _RESUME, _REQS)
+    assert r["parsed"] is True
+    assert len(r["items"]) == 3
+    assert all(i["verdict"] in ("match", "partial", "miss") for i in r["items"])
+    assert r["total_score"] > 0

@@ -95,12 +95,15 @@ class MockLLM:
             heur = _jd_heuristic(_crew_source_text(user, "【JD 原文】"))
             payload = {"must": heur["must"], "nice": heur["nice"]}
         elif "岗位匹配评估器" in system:
+            # v2 crew 路径：末段【岗位加分项】后接 crewai 模板尾巴，_section 截不干净——
+            # 先过 _crew_source_text 切掉模板段，三段抽取才干净（终审 Critical 修复）
+            src_text = _crew_source_text(user, "【候选人画像】")
             try:
-                must = json.loads(_section(user, "岗位必须项") or "[]")
-                nice = json.loads(_section(user, "岗位加分项") or "[]")
+                must = json.loads(_section(src_text, "岗位必须项") or "[]")
+                nice = json.loads(_section(src_text, "岗位加分项") or "[]")
             except json.JSONDecodeError:
                 must, nice = [], []
-            payload = {"items": _heuristic_items(_section(user, "简历原文"), must, nice)}
+            payload = {"items": _heuristic_items(_section(src_text, "简历原文"), must, nice)}
         elif "面试官" in system and "面试开始" in user:
             return assistant_msg("请先做一个简短的自我介绍，重点讲你最熟的项目与技能。")
         else:
