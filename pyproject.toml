@@ -32,3 +32,6 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = [
+    "ignore:Cannot set an attribute on 'crewai.rag':ImportWarning",
+]
