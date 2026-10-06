@@ -9,7 +9,7 @@ AI 面试官：**会追问、记得住**的 HR 面试模拟 Agent。
 
 - **TDD**：核心逻辑（评价引擎/匹配打分/追问策略/Agent 循环）先写失败测试 → 实现 → 绿 → commit。
 - **mock-friendly**：`pip install -e ".[dev]" && pytest -q` 必须在无 Key、无网下全绿（FakeLLM 注入，禁止测试里真调 API）。
-- **版本钉死**：依赖与 `version-lock.json` 一致，不引 lock 外的库（不引 LangGraph/CrewAI/LangChain）。
+- **版本钉死**：依赖与 `version-lock.json` 一致，不引 lock 外的库。编排框架：LangGraph（面试流程·流程视角）+ CrewAI（解析/打分·团队视角）已入 lock；**禁 langchain 顶层包与 langchain-openai**（langchain-core 仅作 langgraph 传递依赖）。两框架边界：解析/打分 = CrewAI，面试流程 = LangGraph，代码互不 import。
 - **禁止 env 默认值兜底**：`LLM_MODE` 必填（mock|live）；live 模式下 base_url/api_key/model 缺一即启动报错。
 - **密钥不入库**：key 只在 `.env`（已 gitignore），`.env.example` 放占位符。
 - **只增不改**：扩功能不动现有模块签名/行为。
