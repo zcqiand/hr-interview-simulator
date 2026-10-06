@@ -39,6 +39,21 @@ def _chunks(text: str, size: int = 8) -> Iterator[str]:
         yield text[i:i + size]
 
 
+def _crew_source_text(user: str, marker: str) -> str:
+    """crewai user 模板：…【X 原文】
+<原文>
+
+This is the expected criteria…Begin!…Thought:…
+
+    切出 <原文> 段做演示取词/拆行域（v1 演示语义）；模板措辞漂移时保守取 marker 后整段。
+    """
+    tail = user.split(marker, 1)[-1]
+    for b in ("This is the expected criteria", "Thought:", "Begin!"):
+        if b in tail:
+            tail = tail.split(b, 1)[0]
+    return tail
+
+
 class MockLLM:
     """离线演示件：与 LiveLLM 同形状，可直接注入 Interviewer / 解析器。"""
 
@@ -65,7 +80,9 @@ class MockLLM:
                 ],
             }
         elif "简历解析器" in system:
-            skills = sorted(set(re.findall(r"[A-Za-z]{2,}", user)))[:5]
+            # v2 crew 路径：user 含 crewai 模板样板——切回纯简历文本域取词（演示语义同 v1）
+            body = _crew_source_text(user, "【简历原文】")
+            skills = sorted(set(re.findall(r"[A-Za-z]{2,}", body)))[:5]
             first_line = user.strip().splitlines()[0][:60] if user.strip() else ""
             payload = {
                 "skills": skills or ["（未识别）"],
@@ -74,7 +91,8 @@ class MockLLM:
                 "highlights": [],
             }
         elif "JD 解析器" in system:
-            heur = _jd_heuristic(user)
+            # v2 crew 路径：同理切回纯 JD 原文域拆行
+            heur = _jd_heuristic(_crew_source_text(user, "【JD 原文】"))
             payload = {"must": heur["must"], "nice": heur["nice"]}
         elif "岗位匹配评估器" in system:
             try:
