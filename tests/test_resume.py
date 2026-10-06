@@ -144,3 +144,16 @@ def test_parse_jd_fallback_bullet_lines():
     assert "3 年以上 Python" in req["must"]
     assert "熟悉 SQL" in req["must"]
     assert any("AI 项目" in n for n in req["nice"])
+
+
+def test_parse_resume_role_marker_reaches_llm():
+    """MockLLM 演示靠 system 里的「简历解析器」分流（Review Focus 1）。"""
+    llm = FakeLLM(turns=[assistant_msg(content=_GOOD_PROFILE)])
+    parse_resume(llm, "张三……")
+    assert "简历解析器" in llm.calls[0]["messages"][0]["content"]
+
+
+def test_parse_jd_role_marker_reaches_llm():
+    llm = FakeLLM(turns=[assistant_msg(content=_GOOD_JD)])
+    parse_jd(llm, "岗位要求……")
+    assert "JD 解析器" in llm.calls[0]["messages"][0]["content"]
