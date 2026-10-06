@@ -125,3 +125,10 @@ def test_build_focus_splits_gaps_and_partials():
     assert focus["opening"] == ["精通 Python", "了解 FastAPI"]      # 开场暖场点名强项
     assert focus["tech"] == [{"requirement": "熟悉 Kubernetes 运维", "note": "简历未提及"}]   # miss→技术题验证
     assert focus["project"] == [{"requirement": "有高并发经验", "note": "存疑"}]              # partial→项目题深挖
+
+
+def test_match_role_marker_reaches_llm():
+    """MockLLM 演示靠 system 里的「岗位匹配评估器」分流（Review Focus 1）。"""
+    llm = _llm_with(_GOOD)
+    match_jd(llm, _PROFILE, _RESUME, _REQS)
+    assert "岗位匹配评估器" in llm.calls[0]["messages"][0]["content"]
