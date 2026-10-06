@@ -16,7 +16,7 @@ AI 面试官：**会追问、记得住**的 HR 面试模拟 Agent。
 
 ## 技术栈（钉死于 version-lock.json）
 
-- 后端：Python 3.10+ / FastAPI / openai SDK（OpenAI 兼容直调：MiniMax-M3，base_url 可配）/ pypdf（简历文本提取）
+- 后端：Python 3.10+ / FastAPI / **LangGraph**（面试流程图·流程视角）/ **CrewAI**（解析·打分团队·团队视角）/ openai SDK（OpenAI 兼容直调：MiniMax-M3，base_url 可配）/ pypdf（简历文本提取）
 - 前端：React 18 + TypeScript + Vite 5（npm 走 registry.npmmirror.com）
 - 存储：SQLite（`data/app.db`，thin DAO，不引 ORM）
 - 语音：暂无（面试打字对话；后续需要再加 Web Speech）
@@ -37,13 +37,15 @@ src/hr_interview/
 ├── config.py        # env 装配，fail-fast
 ├── llm.py           # LLMClient 协议 + LiveLLM(OpenAI兼容) + MockLLM（`<think>` 剥离 / wire 序列化）
 ├── store.py         # SQLite DAO（candidates/jds/matches/interviews/messages/answer_evals）
-├── resume.py        # PDF 文本提取 + LLM 简历结构化画像
-├── matching.py      # ★ 逐条对照打分：verdict/匹配分/强项/缺口 + 出题侧重清单
+├── resume.py        # PDF 文本提取 + LLM 简历结构化画像（CrewAI 内核，签名不变）
+├── matching.py      # ★ 逐条对照打分：verdict/匹配分/强项/缺口 + 出题侧重清单（CrewAI 内核，签名不变）
 ├── evaluation.py    # ★ 评价引擎：4 维评分模型 + 证据引用 + 总评报告
+├── crew_bridge.py   # CrewAI 桥接件：LLM 适配 + 解析员/打分员 crew 工厂（团队视角）
 ├── agent/
 │   ├── prompts.py   # 面试官人设 + 追问策略 + 画像/差距/档案 组装系统提示词
 │   ├── tools.py     # record_answer_eval / advance_stage / finish_interview
-│   └── interviewer.py # 面试 Agent 循环（阶段状态机 + 追问 + SSE）
+│   ├── graph.py     # ★ 面试流程 LangGraph 图（阶段机/护栏/工具轮 = 节点+条件边）
+│   └── interviewer.py # 面试 Agent 接线层（图调用 + SSE 队列旁路）
 └── api/             # 路由：resumes / candidates / jds / matches / interviews
 ```
 
