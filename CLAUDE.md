@@ -58,3 +58,10 @@ src/hr_interview/
 - **解析失败如实说**：加密 PDF/扫描件无文本层 → 明确报错提示，不硬猜内容。
 - **示例数据全虚构**：随仓示例简历/JD 的姓名、电话、公司一律虚构并在文件头注明。
 - MiniMax-M3 对接坑（`<think>` 内联思维链、工具轮回传 wire 形状）已在 llm.py 处理，见记忆 `minimax-m3-integration-pitfalls`。
+
+## 正式区 / 临时区（2026-10-24 人定，全产品线通用）
+
+- 过程件不与正式件混放：任务卡/批次卡、片段（frags-*）、批次文件、合并/对账/自检脚本、门控回执（receipts-*）、调试日志、QC 抽帧——项目级进 `_work/`，章级/集级进所属正式目录下 `_work/` 子目录
+- 正式区同名正式件有且仅有一个（不堆 v2/final 副本）
+- 章节正文、章级门控记录（chapter-NNN.*）、各类台账 json 是正式件，不进 `_work`
+- 可再生件不入库（见 .gitignore）：node_modules、build、out、bin/obj、`**/_work/render`、hook 审计日志
