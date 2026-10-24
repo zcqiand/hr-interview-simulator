@@ -91,3 +91,17 @@ cd frontend && npm run build                     # tsc 严格模式 + vite 构�
 
 依赖版本钉死于 `version-lock.json`；不引 LangGraph / CrewAI / LangChain，
 tool-use 循环为手写实现。
+
+## 配套书籍及章节映射
+
+> 同一案例仓后续接入其他书籍时，在此节下新增书籍小节。
+
+### 书一《图解AI Agent：从零开始开发多场景应用》（卷四）
+
+- 书稿定位：xr-know-015，第 10 章正文代码块挂本仓 `source=` 锚点
+- 配套版本：`v2.0.0-20261006`（registry 冻结 tag，代码以此为准）
+
+| 章 | 章题 | 对应源文件 |
+| :--- | :--- | :--- |
+| 10 | HR 面试 | `frontend/src/api.ts` + `frontend/src/pages/InterviewRoom.tsx` + `frontend/src/pages/Prepare.tsx` + `frontend/src/pages/Report.tsx` + `src/hr_interview/agent/graph.py` + `src/hr_interview/agent/interviewer.py` + `src/hr_interview/agent/prompts.py` + `src/hr_interview/agent/tools.py` + `src/hr_interview/api/routes.py` + `src/hr_interview/config.py` + `src/hr_interview/crew_bridge.py` + `src/hr_interview/evaluation.py` + `src/hr_interview/llm.py` + `src/hr_interview/main.py` + `src/hr_interview/matching.py` + `src/hr_interview/mock_llm.py` + `src/hr_interview/resume.py` + `src/hr_interview/store.py` |
+
