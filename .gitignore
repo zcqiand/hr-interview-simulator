@@ -27,6 +27,7 @@ build/
 out/
 bin/
 obj/
-**/_work/render/
+# 过程件临时区整目录不入库（2026-10-27 人裁，同 xr-code-suite；render 等可再生件含在内）
+_work/
 hook-audit/
 hook-audit*.log

@@ -64,4 +64,5 @@ src/hr_interview/
 - 过程件不与正式件混放：任务卡/批次卡、片段（frags-*）、批次文件、合并/对账/自检脚本、门控回执（receipts-*）、调试日志、QC 抽帧——项目级进 `_work/`，章级/集级进所属正式目录下 `_work/` 子目录
 - 正式区同名正式件有且仅有一个（不堆 v2/final 副本）
 - 章节正文、章级门控记录（chapter-NNN.*）、各类台账 json 是正式件，不进 `_work`
+- `_work/` 整目录 .gitignore，过程件可追溯由本地盘承担；`scratch/` 已废弃并入 `_work/`，临时区只认 `_work/` 一个入口（2026-10-27 人裁，同 xr-code-suite）
 - 可再生件不入库（见 .gitignore）：node_modules、build、out、bin/obj、`**/_work/render`、hook 审计日志
